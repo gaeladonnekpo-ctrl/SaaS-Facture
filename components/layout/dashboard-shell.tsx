@@ -18,15 +18,20 @@ export function DashboardShell({ children }: DashboardShellProps) {
 
   useEffect(() => {
     if (isSupabaseConfigured() && !isLoading && !user) {
-      router.push("/connexion");
+      router.replace("/connexion");
     }
   }, [user, isLoading, router]);
 
-  if (isSupabaseConfigured() && isLoading) {
+  if (isSupabaseConfigured() && (!user || isLoading)) {
     return (
-      <div className="min-h-screen bg-canvas flex flex-col items-center justify-center">
+      <div className="min-h-screen bg-canvas flex flex-col items-center justify-center p-4">
         <div className="h-9 w-9 animate-spin rounded-full border-2 border-forest-900 border-t-transparent mb-3" />
-        <p className="text-xs font-semibold text-forest-950 dark:text-sage-200">Chargement de votre session...</p>
+        <p className="text-xs font-semibold text-forest-950 dark:text-sage-200">
+          Vérification de votre session sécurisée...
+        </p>
+        <p className="text-[11px] text-ink-muted mt-0.5">
+          Protection et isolation de vos données comptables
+        </p>
       </div>
     );
   }

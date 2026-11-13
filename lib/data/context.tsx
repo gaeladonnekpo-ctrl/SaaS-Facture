@@ -14,6 +14,8 @@ import {
   computeLiveMetrics,
   computeLiveCashflow,
   resetStorage,
+  EMPTY_ORGANIZATION,
+  EMPTY_USER,
 } from "./local-store";
 import {
   type MockInvoice,
@@ -84,6 +86,19 @@ export interface CreateCustomerInput {
   rccm?: string;
 }
 
+export interface AppNotification {
+  id: string;
+  type: "payment" | "overdue" | "tax" | "customer" | "invoice";
+  title: string;
+  message: string;
+  time: string;
+  isRead: boolean;
+  linkHref?: string;
+  linkText?: string;
+  amount?: number;
+  timestamp?: number;
+}
+
 interface DataContextType {
   isHydrated: boolean;
   invoices: MockInvoice[];
@@ -96,6 +111,12 @@ interface DataContextType {
   user: typeof MOCK_USER;
   metrics: DashboardMetrics;
   cashflow: MonthlyCashflow[];
+  notifications: AppNotification[];
+  unreadNotificationsCount: number;
+  markAllNotificationsAsRead: () => void;
+  toggleNotificationRead: (id: string) => void;
+  dismissNotification: (id: string) => void;
+  addNotification: (notification: Omit<AppNotification, "id" | "time" | "isRead" | "timestamp">) => void;
   toasts: ToastMessage[];
   showToast: (toast: Omit<ToastMessage, "id">) => void;
   dismissToast: (id: string) => void;
@@ -130,12 +151,23 @@ const DataContext = createContext<DataContextType | null>(null);
 export function DataProvider({ children }: { children: React.ReactNode }) {
   const { user: authUser, profile, isLoading: isAuthLoading } = useAuth();
 
-  const [invoices, setInvoices] = useState<MockInvoice[]>([]);
-  const [customers, setCustomers] = useState<MockCustomer[]>([]);
-  const [organization, setOrganization] = useState<typeof MOCK_ORGANIZATION>(MOCK_ORGANIZATION);
-  const [user, setUser] = useState<typeof MOCK_USER>(MOCK_USER);
+  const [invoices, setInvoices] = useState<MockInvoice[]>(() =>
+    !isSupabaseConfigured() ? getInitialInvoices() : []
+  );
+  const [customers, setCustomers] = useState<MockCustomer[]>(() =>
+    !isSupabaseConfigured() ? getInitialCustomers() : []
+  );
+  const [organization, setOrganization] = useState<typeof MOCK_ORGANIZATION>(() =>
+    !isSupabaseConfigured() ? getInitialOrganization() : EMPTY_ORGANIZATION
+  );
+  const [user, setUser] = useState<typeof MOCK_USER>(() =>
+    !isSupabaseConfigured() ? getInitialUser() : EMPTY_USER
+  );
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [isHydrated, setIsHydrated] = useState(false);
+  const [customNotifications, setCustomNotifications] = useState<AppNotification[]>([]);
+  const [readNotifIds, setReadNotifIds] = useState<string[]>([]);
+  const [dismissedNotifIds, setDismissedNotifIds] = useState<string[]>([]);
 
   // Load real data from Supabase whenever user auth state changes
   useEffect(() => {
@@ -152,21 +184,33 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     if (isAuthLoading) return;
 
     if (!authUser) {
-      // Unauthenticated: clear data
+      // Unauthenticated: clear all user data immediately
       setInvoices([]);
       setCustomers([]);
+      setOrganization(EMPTY_ORGANIZATION);
+      setUser(EMPTY_USER);
+      setCustomNotifications([]);
+      setReadNotifIds([]);
+      setDismissedNotifIds([]);
       setIsHydrated(true);
       return;
     }
+
+    // Wait until profile is loaded to guarantee organizationId
+    if (!authUser || !profile?.organizationId) return;
+
+    const currentAuthUser = authUser;
+    const currentProfile = profile;
+    const orgId = currentProfile.organizationId;
 
     let isMounted = true;
 
     async function loadCloudData() {
       try {
         const [remoteCustomers, remoteInvoices, remoteOrg] = await Promise.all([
-          fetchCustomersFromSupabase(),
-          fetchInvoicesFromSupabase(),
-          fetchOrganizationFromSupabase(),
+          fetchCustomersFromSupabase(orgId),
+          fetchInvoicesFromSupabase(orgId),
+          fetchOrganizationFromSupabase(orgId),
         ]);
 
         if (isMounted) {
@@ -174,19 +218,45 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           setInvoices(remoteInvoices || []);
           if (remoteOrg) {
             setOrganization(remoteOrg);
-          }
-          if (profile) {
-            const fullName = `${profile.firstName} ${profile.lastName}`.trim() || authUser?.email || "Utilisateur";
-            const initials = `${(profile.firstName?.[0] || "").toUpperCase()}${(profile.lastName?.[0] || "").toUpperCase()}` || "U";
-            setUser({
-              id: profile.id || authUser?.id || "usr_active",
-              name: fullName,
-              email: authUser?.email || "",
-              role: profile.role === "owner" ? "Directeur Général" : profile.role,
-              avatarUrl: null,
-              initials,
+          } else {
+            const companyName =
+              (currentAuthUser.user_metadata as any)?.company_name ||
+              `${currentProfile.firstName} ${currentProfile.lastName}`.trim() ||
+              "Mon Entreprise";
+            setOrganization({
+              ...EMPTY_ORGANIZATION,
+              id: orgId,
+              name: companyName,
+              email: currentAuthUser.email || "",
             });
           }
+
+          const fullName =
+            `${currentProfile.firstName} ${currentProfile.lastName}`.trim() ||
+            currentAuthUser.email ||
+            "Utilisateur";
+          const initials =
+            `${(currentProfile.firstName?.[0] || "").toUpperCase()}${(currentProfile.lastName?.[0] || "").toUpperCase()}` ||
+            "U";
+          setUser({
+            id: currentProfile.id || currentAuthUser.id,
+            name: fullName,
+            email: currentAuthUser.email || "",
+            role: currentProfile.role === "owner" ? "Directeur Général" : currentProfile.role,
+            avatarUrl: null,
+            initials,
+          });
+
+          // Load user-scoped notification preferences
+          try {
+            const readRaw = localStorage.getItem(`danhomey_notifs_read_${currentAuthUser.id}`);
+            if (readRaw) setReadNotifIds(JSON.parse(readRaw));
+            const disRaw = localStorage.getItem(`danhomey_notifs_dis_${currentAuthUser.id}`);
+            if (disRaw) setDismissedNotifIds(JSON.parse(disRaw));
+            const customRaw = localStorage.getItem(`danhomey_notifs_custom_${currentAuthUser.id}`);
+            if (customRaw) setCustomNotifications(JSON.parse(customRaw));
+          } catch {}
+
           setIsHydrated(true);
         }
       } catch (err) {
@@ -202,30 +272,30 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     };
   }, [authUser, profile, isAuthLoading]);
 
-  // Save changes to localStorage once hydrated
+  // Save changes to localStorage scoped by user once hydrated
   useEffect(() => {
-    if (isHydrated) {
-      saveInvoices(invoices);
+    if (isHydrated && authUser?.id) {
+      saveInvoices(invoices, authUser.id);
     }
-  }, [invoices, isHydrated]);
+  }, [invoices, isHydrated, authUser?.id]);
 
   useEffect(() => {
-    if (isHydrated) {
-      saveCustomers(customers);
+    if (isHydrated && authUser?.id) {
+      saveCustomers(customers, authUser.id);
     }
-  }, [customers, isHydrated]);
+  }, [customers, isHydrated, authUser?.id]);
 
   useEffect(() => {
-    if (isHydrated) {
-      saveOrganization(organization);
+    if (isHydrated && authUser?.id) {
+      saveOrganization(organization, authUser.id);
     }
-  }, [organization, isHydrated]);
+  }, [organization, isHydrated, authUser?.id]);
 
   useEffect(() => {
-    if (isHydrated) {
-      saveUser(user);
+    if (isHydrated && authUser?.id) {
+      saveUser(user, authUser.id);
     }
-  }, [user, isHydrated]);
+  }, [user, isHydrated, authUser?.id]);
 
   // Toast helpers
   const dismissToast = useCallback((id: string) => {
@@ -281,6 +351,147 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   // Dynamic calculated metrics & cashflow based on filtered invoices
   const metrics = useMemo(() => computeLiveMetrics(filteredInvoices), [filteredInvoices]);
   const cashflow = useMemo(() => computeLiveCashflow(filteredInvoices), [filteredInvoices]);
+
+  // Notifications system: dynamically computed from current user's data + real events
+  const addNotification = useCallback(
+    (notif: Omit<AppNotification, "id" | "time" | "isRead" | "timestamp">) => {
+      const id = `notif_evt_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+      const newNotif: AppNotification = {
+        ...notif,
+        id,
+        time: "À l'instant",
+        isRead: false,
+        timestamp: Date.now(),
+      };
+      setCustomNotifications((prev) => {
+        const next = [newNotif, ...prev];
+        if (authUser?.id) {
+          try {
+            localStorage.setItem(
+              `danhomey_notifs_custom_${authUser.id}`,
+              JSON.stringify(next.slice(0, 30))
+            );
+          } catch {}
+        }
+        return next;
+      });
+    },
+    [authUser?.id]
+  );
+
+  const notifications: AppNotification[] = useMemo(() => {
+    if (!authUser && isSupabaseConfigured()) {
+      return [];
+    }
+
+    const dismissedSet = new Set(dismissedNotifIds);
+    const readSet = new Set(readNotifIds);
+    const today = getTodayISODate();
+    const list: AppNotification[] = [];
+
+    // 1. From real payments recorded on user invoices
+    invoices.forEach((inv) => {
+      if (inv.payments && inv.payments.length > 0) {
+        inv.payments.forEach((p) => {
+          const id = `notif_pay_${p.id}`;
+          if (!dismissedSet.has(id)) {
+            list.push({
+              id,
+              type: "payment",
+              title: "Paiement reçu",
+              message: `Règlement de ${p.amount.toLocaleString("fr-FR")} FCFA enregistré (${p.method}) pour la facture ${inv.number}.`,
+              time: p.date ? `Reçu le ${p.date}` : "Récemment",
+              isRead: readSet.has(id),
+              linkHref: `/factures/${inv.id}`,
+              linkText: "Voir la facture",
+              amount: p.amount,
+              timestamp: p.date ? new Date(p.date).getTime() : 0,
+            });
+          }
+        });
+      }
+    });
+
+    // 2. From real overdue invoices of the user
+    invoices.forEach((inv) => {
+      const isOverdue =
+        inv.displayStatus === "overdue" ||
+        (inv.dueDate &&
+          inv.dueDate < today &&
+          inv.amountPaid < inv.total &&
+          inv.displayStatus !== "cancelled" &&
+          inv.displayStatus !== "draft");
+
+      if (isOverdue) {
+        const id = `notif_overdue_${inv.id}`;
+        if (!dismissedSet.has(id)) {
+          const due = Math.max(0, inv.total - inv.amountPaid);
+          list.push({
+            id,
+            type: "overdue",
+            title: "Échéance dépassée (retard)",
+            message: `La facture ${inv.number} pour ${inv.customerName} (${due.toLocaleString("fr-FR")} FCFA) est en retard.`,
+            time: `Échue le ${inv.dueDate}`,
+            isRead: readSet.has(id),
+            linkHref: `/factures/${inv.id}`,
+            linkText: "Consulter la facture",
+            amount: due,
+            timestamp: inv.dueDate ? new Date(inv.dueDate).getTime() : 0,
+          });
+        }
+      }
+    });
+
+    // 3. From custom dynamic events
+    customNotifications.forEach((cn) => {
+      if (!dismissedSet.has(cn.id)) {
+        list.push({
+          ...cn,
+          isRead: readSet.has(cn.id) || cn.isRead,
+        });
+      }
+    });
+
+    return list.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+  }, [invoices, customNotifications, dismissedNotifIds, readNotifIds, authUser]);
+
+  const unreadNotificationsCount = useMemo(() => {
+    return notifications.filter((n) => !n.isRead).length;
+  }, [notifications]);
+
+  const markAllNotificationsAsRead = useCallback(() => {
+    const allIds = notifications.map((n) => n.id);
+    setReadNotifIds(allIds);
+    if (authUser?.id) {
+      try {
+        localStorage.setItem(`danhomey_notifs_read_${authUser.id}`, JSON.stringify(allIds));
+      } catch {}
+    }
+  }, [notifications, authUser?.id]);
+
+  const toggleNotificationRead = useCallback((id: string) => {
+    setReadNotifIds((prev) => {
+      const next = prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id];
+      if (authUser?.id) {
+        try {
+          localStorage.setItem(`danhomey_notifs_read_${authUser.id}`, JSON.stringify(next));
+        } catch {}
+      }
+      return next;
+    });
+  }, [authUser?.id]);
+
+  const dismissNotification = useCallback((id: string) => {
+    setDismissedNotifIds((prev) => {
+      const next = [...prev, id];
+      if (authUser?.id) {
+        try {
+          localStorage.setItem(`danhomey_notifs_dis_${authUser.id}`, JSON.stringify(next));
+        } catch {}
+      }
+      return next;
+    });
+  }, [authUser?.id]);
 
   // Actions
   const createInvoice = useCallback(
@@ -361,6 +572,17 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         );
       }
 
+      if (isSent) {
+        addNotification({
+          type: "invoice",
+          title: "Facture émise",
+          message: `Facture ${number} pour ${newInvoice.customerName} (${totals.total.toLocaleString("fr-FR")} FCFA) émise avec succès.`,
+          linkHref: `/factures/${newInvoice.id}`,
+          linkText: "Voir la facture",
+          amount: totals.total,
+        });
+      }
+
       showToast({
         type: "success",
         title: isSent ? "Facture émise" : "Brouillon sauvegardé",
@@ -371,7 +593,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
       return newInvoice;
     },
-    [customers, organization, profile?.organizationId, showToast]
+    [customers, organization, profile?.organizationId, showToast, addNotification]
   );
 
   const emitInvoice = useCallback(
@@ -413,6 +635,15 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           emitInvoiceInSupabase(id, nextNumber).catch(console.warn);
         }
 
+        addNotification({
+          type: "invoice",
+          title: "Facture émise",
+          message: `Facture ${nextNumber} émise pour ${inv.customerName} (${inv.total.toLocaleString("fr-FR")} FCFA).`,
+          linkHref: `/factures/${inv.id}`,
+          linkText: "Voir la facture",
+          amount: inv.total,
+        });
+
         showToast({
           type: "success",
           title: "Facture émise",
@@ -422,7 +653,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       }
       throw new Error(`Invoice ${id} not found.`);
     },
-    [organization.invoicePrefix, showToast]
+    [organization.invoicePrefix, showToast, addNotification]
   );
 
   const recordPayment = useCallback(
@@ -490,6 +721,15 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           recordPaymentInSupabase(invoiceId, payment, orgId).catch(console.warn);
         }
 
+        addNotification({
+          type: "payment",
+          title: "Paiement enregistré",
+          message: `Règlement de ${payment.amount.toLocaleString("fr-FR")} FCFA enregistré (${payment.method}) pour la facture ${inv.number}.`,
+          linkHref: `/factures/${inv.id}`,
+          linkText: "Voir la facture",
+          amount: payment.amount,
+        });
+
         showToast({
           type: "success",
           title: "Paiement enregistré",
@@ -499,7 +739,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       }
       throw new Error(`Invoice ${invoiceId} not found.`);
     },
-    [organization.id, profile?.organizationId, showToast]
+    [organization.id, profile?.organizationId, showToast, addNotification]
   );
 
   const cancelInvoice = useCallback(
@@ -794,6 +1034,14 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           .catch(console.warn);
       }
 
+      addNotification({
+        type: "customer",
+        title: "Nouveau client enregistré",
+        message: `${newCustomer.name} (${newCustomer.city}, ${newCustomer.country}) a été ajouté à votre répertoire.`,
+        linkHref: `/clients`,
+        linkText: "Consulter la fiche",
+      });
+
       showToast({
         type: "success",
         title: "Client ajouté",
@@ -802,7 +1050,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
       return newCustomer;
     },
-    [organization.id, profile?.organizationId, showToast]
+    [organization.id, profile?.organizationId, showToast, addNotification]
   );
 
   const updateCustomer = useCallback(
@@ -909,6 +1157,12 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         user,
         metrics,
         cashflow,
+        notifications,
+        unreadNotificationsCount,
+        markAllNotificationsAsRead,
+        toggleNotificationRead,
+        dismissNotification,
+        addNotification,
         toasts,
         showToast,
         dismissToast,

@@ -443,8 +443,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = useCallback(async () => {
     const supabase = getSupabaseBrowserClient();
     if (supabase) {
-      await supabase.auth.signOut();
+      try {
+        await supabase.auth.signOut({ scope: "local" });
+      } catch (e) {
+        console.warn("Sign out error:", e);
+      }
     }
+
+    // Clean up all client caches, user-scoped storage, and sessionStorage
+    if (typeof window !== "undefined") {
+      try {
+        const keysToRemove: string[] = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && (key.startsWith("danhomey_") || key.startsWith("sb-"))) {
+            keysToRemove.push(key);
+          }
+        }
+        keysToRemove.forEach((k) => localStorage.removeItem(k));
+        sessionStorage.clear();
+      } catch (e) {
+        console.warn("Storage cleanup error:", e);
+      }
+    }
+
     setUser(null);
     setSession(null);
     setProfile(null);

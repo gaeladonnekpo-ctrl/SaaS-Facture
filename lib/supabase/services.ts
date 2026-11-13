@@ -203,14 +203,16 @@ export function mapDbOrgToModel(row: SupabaseOrgRow): typeof MOCK_ORGANIZATION {
 // SERVICES CLIENTS
 // -----------------------------------------------------------------------------
 
-export async function fetchCustomersFromSupabase(): Promise<MockCustomer[] | null> {
+export async function fetchCustomersFromSupabase(orgId?: string): Promise<MockCustomer[] | null> {
   const supabase = getSupabaseBrowserClient();
   if (!supabase) return null;
+  if (!orgId) return [];
 
   try {
     const { data, error } = await supabase
       .from("customers")
       .select("*")
+      .eq("organization_id", orgId)
       .order("created_at", { ascending: false });
 
     if (error || !data) {
@@ -316,9 +318,10 @@ export async function deleteCustomerInSupabase(id: string): Promise<boolean> {
 // SERVICES FACTURES
 // -----------------------------------------------------------------------------
 
-export async function fetchInvoicesFromSupabase(): Promise<MockInvoice[] | null> {
+export async function fetchInvoicesFromSupabase(orgId?: string): Promise<MockInvoice[] | null> {
   const supabase = getSupabaseBrowserClient();
   if (!supabase) return null;
+  if (!orgId) return [];
 
   try {
     const { data, error } = await supabase
@@ -329,6 +332,7 @@ export async function fetchInvoicesFromSupabase(): Promise<MockInvoice[] | null>
         invoice_items (*),
         payments (*)
       `)
+      .eq("organization_id", orgId)
       .order("created_at", { ascending: false });
 
     if (error || !data) {
@@ -635,12 +639,17 @@ export async function recordPaymentInSupabase(
 // SERVICES ORGANISATION
 // -----------------------------------------------------------------------------
 
-export async function fetchOrganizationFromSupabase(): Promise<typeof MOCK_ORGANIZATION | null> {
+export async function fetchOrganizationFromSupabase(orgId?: string): Promise<typeof MOCK_ORGANIZATION | null> {
   const supabase = getSupabaseBrowserClient();
   if (!supabase) return null;
+  if (!orgId) return null;
 
   try {
-    const { data, error } = await supabase.from("organizations").select("*").limit(1).maybeSingle();
+    const { data, error } = await supabase
+      .from("organizations")
+      .select("*")
+      .eq("id", orgId)
+      .maybeSingle();
 
     if (error || !data) {
       return null;

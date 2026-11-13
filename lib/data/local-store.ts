@@ -12,112 +12,165 @@ import {
 import { computeInvoiceTotals } from "../invoice/totals";
 import { formatNumber } from "../format/money";
 import type { DisplayStatus, PaymentMethod } from "../domain/types";
+import { isSupabaseConfigured } from "../supabase/client";
 
-const STORAGE_KEYS = {
-  INVOICES: "danhomey_invoices_v1",
-  CUSTOMERS: "danhomey_customers_v1",
-  ORGANIZATION: "danhomey_org_v1",
-  USER: "danhomey_user_v1",
-  COUNTER: "danhomey_invoice_counter_v1",
+export const EMPTY_ORGANIZATION: typeof MOCK_ORGANIZATION = {
+  id: "",
+  name: "Mon Entreprise",
+  city: "Cotonou",
+  country: "Bénin",
+  currency: "XOF" as const,
+  ifu: "",
+  rccm: "",
+  address: "",
+  phone: "",
+  email: "",
+  bankName: "",
+  bankIban: "",
+  mobileMoneyWave: "",
+  mobileMoneyMtn: "",
+  vatRate: 18,
+  invoicePrefix: "FAC",
+  paymentTermsDays: 30,
+  footerNote: "Facture établie selon les normes du SYSCOHADA révisé.",
 };
 
-// Helper to check if running in browser
-const isClient = typeof window !== "undefined";
+export const EMPTY_USER: typeof MOCK_USER = {
+  id: "",
+  name: "Utilisateur",
+  email: "",
+  role: "Directeur Général",
+  avatarUrl: null,
+  initials: "U",
+};
 
-export function getInitialInvoices(): MockInvoice[] {
-  if (!isClient) return MOCK_INVOICES;
+function getStorageKeys(userId?: string) {
+  const prefix = userId ? `danhomey_${userId}_` : "danhomey_shared_";
+  return {
+    INVOICES: `${prefix}invoices_v2`,
+    CUSTOMERS: `${prefix}customers_v2`,
+    ORGANIZATION: `${prefix}org_v2`,
+    USER: `${prefix}user_v2`,
+    COUNTER: `${prefix}counter_v2`,
+  };
+}
+
+function getStorage(): Storage | null {
+  if (typeof window !== "undefined" && window.localStorage) return window.localStorage;
+  if (typeof (globalThis as any).localStorage !== "undefined" && (globalThis as any).localStorage?.getItem) {
+    return (globalThis as any).localStorage;
+  }
+  return null;
+}
+
+export function getInitialInvoices(userId?: string): MockInvoice[] {
+  const storage = getStorage();
+  if (!storage) return !isSupabaseConfigured() && !userId ? MOCK_INVOICES : [];
+  if (isSupabaseConfigured() && !userId) return [];
   try {
-    const raw = localStorage.getItem(STORAGE_KEYS.INVOICES);
+    const raw = storage.getItem(getStorageKeys(userId).INVOICES);
     if (raw) return JSON.parse(raw);
   } catch (e) {
     console.error("Failed to load invoices from localStorage", e);
   }
-  return MOCK_INVOICES;
+  return !isSupabaseConfigured() && !userId ? MOCK_INVOICES : [];
 }
 
-export function saveInvoices(invoices: MockInvoice[]): void {
-  if (!isClient) return;
+export function saveInvoices(invoices: MockInvoice[], userId?: string): void {
+  const storage = getStorage();
+  if (!storage || !userId) return;
   try {
-    localStorage.setItem(STORAGE_KEYS.INVOICES, JSON.stringify(invoices));
+    storage.setItem(getStorageKeys(userId).INVOICES, JSON.stringify(invoices));
   } catch (e) {
     console.error("Failed to save invoices to localStorage", e);
   }
 }
 
-export function getInitialCustomers(): MockCustomer[] {
-  if (!isClient) return MOCK_CUSTOMERS;
+export function getInitialCustomers(userId?: string): MockCustomer[] {
+  const storage = getStorage();
+  if (!storage) return !isSupabaseConfigured() && !userId ? MOCK_CUSTOMERS : [];
+  if (isSupabaseConfigured() && !userId) return [];
   try {
-    const raw = localStorage.getItem(STORAGE_KEYS.CUSTOMERS);
+    const raw = storage.getItem(getStorageKeys(userId).CUSTOMERS);
     if (raw) return JSON.parse(raw);
   } catch (e) {
     console.error("Failed to load customers from localStorage", e);
   }
-  return MOCK_CUSTOMERS;
+  return !isSupabaseConfigured() && !userId ? MOCK_CUSTOMERS : [];
 }
 
-export function saveCustomers(customers: MockCustomer[]): void {
-  if (!isClient) return;
+export function saveCustomers(customers: MockCustomer[], userId?: string): void {
+  const storage = getStorage();
+  if (!storage || !userId) return;
   try {
-    localStorage.setItem(STORAGE_KEYS.CUSTOMERS, JSON.stringify(customers));
+    storage.setItem(getStorageKeys(userId).CUSTOMERS, JSON.stringify(customers));
   } catch (e) {
     console.error("Failed to save customers to localStorage", e);
   }
 }
 
-export function getInitialOrganization(): typeof MOCK_ORGANIZATION {
-  if (!isClient) return MOCK_ORGANIZATION;
+export function getInitialOrganization(userId?: string): typeof MOCK_ORGANIZATION {
+  const storage = getStorage();
+  if (!storage) return !isSupabaseConfigured() && !userId ? MOCK_ORGANIZATION : EMPTY_ORGANIZATION;
+  if (isSupabaseConfigured() && !userId) return EMPTY_ORGANIZATION;
   try {
-    const raw = localStorage.getItem(STORAGE_KEYS.ORGANIZATION);
+    const raw = storage.getItem(getStorageKeys(userId).ORGANIZATION);
     if (raw) return JSON.parse(raw);
   } catch (e) {
     console.error("Failed to load organization from localStorage", e);
   }
-  return MOCK_ORGANIZATION;
+  return !isSupabaseConfigured() && !userId ? MOCK_ORGANIZATION : EMPTY_ORGANIZATION;
 }
 
-export function saveOrganization(org: typeof MOCK_ORGANIZATION): void {
-  if (!isClient) return;
+export function saveOrganization(org: typeof MOCK_ORGANIZATION, userId?: string): void {
+  const storage = getStorage();
+  if (!storage || !userId) return;
   try {
-    localStorage.setItem(STORAGE_KEYS.ORGANIZATION, JSON.stringify(org));
+    storage.setItem(getStorageKeys(userId).ORGANIZATION, JSON.stringify(org));
   } catch (e) {
     console.error("Failed to save organization to localStorage", e);
   }
 }
 
-export function getInitialUser(): typeof MOCK_USER {
-  if (!isClient) return MOCK_USER;
+export function getInitialUser(userId?: string): typeof MOCK_USER {
+  const storage = getStorage();
+  if (!storage) return !isSupabaseConfigured() && !userId ? MOCK_USER : EMPTY_USER;
+  if (isSupabaseConfigured() && !userId) return EMPTY_USER;
   try {
-    const raw = localStorage.getItem(STORAGE_KEYS.USER);
+    const raw = storage.getItem(getStorageKeys(userId).USER);
     if (raw) return JSON.parse(raw);
   } catch (e) {
     console.error("Failed to load user from localStorage", e);
   }
-  return MOCK_USER;
+  return !isSupabaseConfigured() && !userId ? MOCK_USER : EMPTY_USER;
 }
 
-export function saveUser(user: typeof MOCK_USER): void {
-  if (!isClient) return;
+export function saveUser(user: typeof MOCK_USER, userId?: string): void {
+  const storage = getStorage();
+  if (!storage || !userId) return;
   try {
-    localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(user));
+    storage.setItem(getStorageKeys(userId).USER, JSON.stringify(user));
   } catch (e) {
     console.error("Failed to save user to localStorage", e);
   }
 }
 
-export function getNextInvoiceSequence(): number {
-  if (!isClient) return 49;
+export function getNextInvoiceSequence(userId?: string): number {
+  const storage = getStorage();
+  if (!storage) return 49;
   try {
-    const raw = localStorage.getItem(STORAGE_KEYS.COUNTER);
+    const key = getStorageKeys(userId).COUNTER;
+    const raw = storage.getItem(key);
     const count = raw ? parseInt(raw, 10) : 49;
-    localStorage.setItem(STORAGE_KEYS.COUNTER, String(count + 1));
+    storage.setItem(key, String(count + 1));
     return count;
   } catch {
     return 49;
   }
 }
 
-export function generateInvoiceNumber(rawPrefix = "FAC", year = new Date().getFullYear()): string {
-  const seq = getNextInvoiceSequence();
+export function generateInvoiceNumber(rawPrefix = "FAC", year = new Date().getFullYear(), userId?: string): string {
+  const seq = getNextInvoiceSequence(userId);
   const padded = String(seq).padStart(4, "0");
 
   const cleanPrefix = (rawPrefix || "FAC").trim().replace(/[-_ ]+$/, "");
@@ -261,10 +314,13 @@ export function computeLiveCashflow(invoices: MockInvoice[]): MonthlyCashflow[] 
   }));
 }
 
-export function resetStorage(): void {
-  if (!isClient) return;
-  localStorage.removeItem(STORAGE_KEYS.INVOICES);
-  localStorage.removeItem(STORAGE_KEYS.CUSTOMERS);
-  localStorage.removeItem(STORAGE_KEYS.ORGANIZATION);
-  localStorage.removeItem(STORAGE_KEYS.COUNTER);
+export function resetStorage(userId?: string): void {
+  const storage = getStorage();
+  if (!storage) return;
+  const keys = getStorageKeys(userId);
+  storage.removeItem(keys.INVOICES);
+  storage.removeItem(keys.CUSTOMERS);
+  storage.removeItem(keys.ORGANIZATION);
+  storage.removeItem(keys.USER);
+  storage.removeItem(keys.COUNTER);
 }

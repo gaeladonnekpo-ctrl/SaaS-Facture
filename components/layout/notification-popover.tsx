@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { formatFCFA } from "@/lib/format/money";
 import { useI18n } from "@/lib/i18n/context";
-import { useData } from "@/lib/data/context";
+import { useData, type AppNotification } from "@/lib/data/context";
 import {
   Bell,
   CheckCircle2,
@@ -18,84 +18,22 @@ import {
   ArrowRight,
 } from "lucide-react";
 
-export interface AppNotification {
-  id: string;
-  type: "payment" | "overdue" | "tax" | "customer";
-  title: string;
-  message: string;
-  time: string;
-  isRead: boolean;
-  linkHref?: string;
-  linkText?: string;
-  amount?: number;
-}
-
-const INITIAL_NOTIFICATIONS: AppNotification[] = [
-  {
-    id: "notif_1",
-    type: "payment",
-    title: "Paiement Mobile Money reçu",
-    message: "Règlement de 650 000 FCFA reçu par Wave pour la facture FAC-2026-0048.",
-    time: "Il y a 12 min",
-    isRead: false,
-    linkHref: "/factures/inv_01",
-    linkText: "Voir la facture",
-    amount: 650_000,
-  },
-  {
-    id: "notif_2",
-    type: "overdue",
-    title: "Échéance dépassée (retard)",
-    message: "La facture FAC-2026-0044 de Cabinet Me Alapini & Associés (1 200 000 FCFA) est en retard.",
-    time: "Il y a 2 h",
-    isRead: false,
-    linkHref: "/factures",
-    linkText: "Consulter la facture",
-    amount: 1_200_000,
-  },
-  {
-    id: "notif_3",
-    type: "payment",
-    title: "Virement bancaire BOA validé",
-    message: "Encaissement de 1 900 000 FCFA reçu de Groupe Bâtir & Co.",
-    time: "Hier à 16:40",
-    isRead: false,
-    linkHref: "/paiements",
-    linkText: "Relevé des paiements",
-    amount: 1_900_000,
-  },
-  {
-    id: "notif_4",
-    type: "tax",
-    title: "Échéance déclaration TVA 18 %",
-    message: "La déclaration mensuelle TVA pour le mois d'Octobre doit être déposée avant le 15 Novembre.",
-    time: "Il y a 2 jours",
-    isRead: true,
-    linkHref: "/rapports",
-    linkText: "Consulter le rapport TVA",
-  },
-  {
-    id: "notif_5",
-    type: "customer",
-    title: "Nouveau compte client enregistré",
-    message: "Bénin Énergie & Solutions SARL (IFU-2026-391829) a été ajouté à votre répertoire.",
-    time: "Il y a 3 jours",
-    isRead: true,
-    linkHref: "/clients",
-    linkText: "Voir le répertoire",
-  },
-];
-
 export function NotificationPopover() {
   const { t } = useI18n();
-  const { showToast } = useData();
+  const {
+    notifications,
+    unreadNotificationsCount,
+    markAllNotificationsAsRead,
+    toggleNotificationRead,
+    dismissNotification,
+    showToast,
+  } = useData();
   const [isOpen, setIsOpen] = useState(false);
-  const [notifications, setNotifications] = useState<AppNotification[]>(INITIAL_NOTIFICATIONS);
 
-  const unreadCount = notifications.filter((n) => !n.isRead).length;
+  const unreadCount = unreadNotificationsCount;
 
   const handleMarkAllAsRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    markAllNotificationsAsRead();
     showToast({
       type: "info",
       title: "Notifications",
@@ -105,14 +43,12 @@ export function NotificationPopover() {
 
   const handleToggleRead = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, isRead: !n.isRead } : n))
-    );
+    toggleNotificationRead(id);
   };
 
   const handleDismiss = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    setNotifications((prev) => prev.filter((n) => n.id !== id));
+    dismissNotification(id);
   };
 
   const getIcon = (type: AppNotification["type"]) => {
@@ -127,6 +63,12 @@ export function NotificationPopover() {
         return (
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-rose-100 dark:bg-rose-950/70 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60">
             <AlertTriangle className="w-4 h-4 text-rose-700 dark:text-rose-400" />
+          </div>
+        );
+      case "invoice":
+        return (
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-forest-100 dark:bg-forest-950/70 text-forest-800 dark:text-forest-300 border border-forest-200 dark:border-forest-700/60">
+            <Receipt className="w-4 h-4 text-forest-700 dark:text-forest-400" />
           </div>
         );
       case "tax":
@@ -214,9 +156,7 @@ export function NotificationPopover() {
                     key={notif.id}
                     onClick={() => {
                       if (!notif.isRead) {
-                        setNotifications((prev) =>
-                          prev.map((n) => (n.id === notif.id ? { ...n, isRead: true } : n))
-                        );
+                        toggleNotificationRead(notif.id);
                       }
                     }}
                     className={`p-3.5 transition-colors relative flex items-start gap-3 cursor-pointer ${
