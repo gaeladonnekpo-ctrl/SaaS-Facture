@@ -1,0 +1,264 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
+
+/*
+ * Variables dynamiques Light / Dark mode
+ */
+:root {
+  --canvas-bg: #f8f9f6;
+  --surface-bg: #ffffff;
+  --surface-hover-bg: #fafbfa;
+  --line-color: #e2e6dd;
+  --line-subtle-color: #edf0ea;
+  --ink-color: #0f241b;
+  --ink-muted-color: #6d7667;
+
+  --forest-950-color: #0a1812;
+  --forest-900-color: #0f241b;
+  --forest-850-color: #142e23;
+  --forest-800-color: #1a382b;
+  --forest-700-color: #234b3a;
+  --forest-600-color: #2f614b;
+  --forest-500-color: #428266;
+
+  --lime-50-color: #f7fee7;
+  --lime-100-color: #f1fcd5;
+  --lime-200-color: #e0f89e;
+  --lime-300-color: #cbef78;
+
+  --sage-50-color: #f8f9f6;
+  --sage-100-color: #f0f2ed;
+  --sage-200-color: #e2e6dd;
+  --sage-300-color: #cfd5c8;
+  --sage-400-color: #9da696;
+  --sage-500-color: #6d7667;
+  --sage-600-color: #51594c;
+  --sage-700-color: #3c4238;
+
+  --status-draft-bg: #f4f5f1;
+  --status-draft-fg: #52594e;
+  --status-draft-border: #dde1d8;
+
+  --status-sent-bg: #fff8eb;
+  --status-sent-fg: #b45309;
+  --status-sent-border: #fde68a;
+
+  --status-paid-bg: #ecfdf5;
+  --status-paid-fg: #047857;
+  --status-paid-border: #a7f3d0;
+
+  --status-overdue-bg: #fef2f2;
+  --status-overdue-fg: #b91c1c;
+  --status-overdue-border: #fecaca;
+
+  --status-cancelled-bg: #f5f5f4;
+  --status-cancelled-fg: #78716c;
+  --status-cancelled-border: #e7e5e4;
+
+  --card-shadow: 0 1px 3px 0 rgb(15 36 27 / 0.04), 0 4px 14px -2px rgb(15 36 27 / 0.03);
+  --dropdown-shadow: 0 10px 25px -5px rgb(15 36 27 / 0.08), 0 8px 10px -6px rgb(15 36 27 / 0.04);
+}
+
+.dark, [data-theme="dark"] {
+  --canvas-bg: #070e0a;
+  --surface-bg: #0d1812;
+  --surface-hover-bg: #13241b;
+  --line-color: #1c3526;
+  --line-subtle-color: #15291d;
+  --ink-color: #edf8f2;
+  --ink-muted-color: #8da495;
+
+  --forest-950-color: #f4fbf6;
+  --forest-900-color: #e1f5eb;
+  --forest-850-color: #c4ecd6;
+  --forest-800-color: #9ee0bd;
+  --forest-700-color: #6ee7b7;
+  --forest-600-color: #34d399;
+  --forest-500-color: #10b981;
+
+  --lime-50-color: #0b1f13;
+  --lime-100-color: #12301c;
+  --lime-200-color: #1b4227;
+  --lime-300-color: #275936;
+
+  --sage-50-color: #0d1812;
+  --sage-100-color: #13241b;
+  --sage-200-color: #1c3526;
+  --sage-300-color: #274633;
+  --sage-400-color: #5d7e6c;
+  --sage-500-color: #8da495;
+  --sage-600-color: #b1c8ba;
+  --sage-700-color: #d6e6de;
+
+  --status-draft-bg: #151e18;
+  --status-draft-fg: #cbd5cb;
+  --status-draft-border: #233328;
+
+  --status-sent-bg: #271a06;
+  --status-sent-fg: #fcd34d;
+  --status-sent-border: #78350f;
+
+  --status-paid-bg: #072216;
+  --status-paid-fg: #6ee7b7;
+  --status-paid-border: #065f46;
+
+  --status-overdue-bg: #260b0f;
+  --status-overdue-fg: #fca5a5;
+  --status-overdue-border: #991b1b;
+
+  --status-cancelled-bg: #181918;
+  --status-cancelled-fg: #a8a29e;
+  --status-cancelled-border: #383836;
+
+  --card-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.4), 0 4px 14px -2px rgb(0 0 0 / 0.3);
+  --dropdown-shadow: 0 10px 25px -5px rgb(0 0 0 / 0.6), 0 8px 10px -6px rgb(0 0 0 / 0.4);
+}
+
+@theme {
+  --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  /* Vert forêt */
+  --color-forest-950: var(--forest-950-color);
+  --color-forest-900: var(--forest-900-color);
+  --color-forest-850: var(--forest-850-color);
+  --color-forest-800: var(--forest-800-color);
+  --color-forest-700: var(--forest-700-color);
+  --color-forest-600: var(--forest-600-color);
+  --color-forest-500: var(--forest-500-color);
+
+  /* Citron dynamique */
+  --color-lime-50: var(--lime-50-color);
+  --color-lime-100: var(--lime-100-color);
+  --color-lime-200: var(--lime-200-color);
+  --color-lime-300: var(--lime-300-color);
+  --color-lime-400: #b5e354;
+  --color-lime-500: #9dd333;
+
+  /* Sauge & neutres */
+  --color-sage-50: var(--sage-50-color);
+  --color-sage-100: var(--sage-100-color);
+  --color-sage-200: var(--sage-200-color);
+  --color-sage-300: var(--sage-300-color);
+  --color-sage-400: var(--sage-400-color);
+  --color-sage-500: var(--sage-500-color);
+  --color-sage-600: var(--sage-600-color);
+  --color-sage-700: var(--sage-700-color);
+
+  /* Rôles sémantiques */
+  --color-canvas: var(--canvas-bg);
+  --color-surface: var(--surface-bg);
+  --color-surface-hover: var(--surface-hover-bg);
+  --color-line: var(--line-color);
+  --color-line-subtle: var(--line-subtle-color);
+  --color-ink: var(--ink-color);
+  --color-ink-muted: var(--ink-muted-color);
+  --color-primary: var(--forest-900-color);
+  --color-accent: var(--color-lime-400);
+
+  /* Statuts de facture */
+  --color-status-draft-bg: var(--status-draft-bg);
+  --color-status-draft-fg: var(--status-draft-fg);
+  --color-status-draft-border: var(--status-draft-border);
+
+  --color-status-sent-bg: var(--status-sent-bg);
+  --color-status-sent-fg: var(--status-sent-fg);
+  --color-status-sent-border: var(--status-sent-border);
+
+  --color-status-paid-bg: var(--status-paid-bg);
+  --color-status-paid-fg: var(--status-paid-fg);
+  --color-status-paid-border: var(--status-paid-border);
+
+  --color-status-overdue-bg: var(--status-overdue-bg);
+  --color-status-overdue-fg: var(--status-overdue-fg);
+  --color-status-overdue-border: var(--status-overdue-border);
+
+  --color-status-cancelled-bg: var(--status-cancelled-bg);
+  --color-status-cancelled-fg: var(--status-cancelled-fg);
+  --color-status-cancelled-border: var(--status-cancelled-border);
+
+  --radius-card: 0.875rem;
+  --radius-control: 0.5rem;
+  --radius-badge: 9999px;
+  --shadow-card: var(--card-shadow);
+  --shadow-dropdown: var(--dropdown-shadow);
+}
+
+@layer base {
+  * {
+    border-color: var(--line-color);
+  }
+
+  body {
+    background-color: var(--canvas-bg);
+    color: var(--ink-color);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    letter-spacing: -0.025em;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--forest-700-color);
+    outline-offset: 2px;
+  }
+}
+
+.dark input,
+.dark select,
+.dark textarea {
+  background-color: #12221a !important;
+  color: #f3faf5 !important;
+  border-color: #1e3829 !important;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #5e7d6c !important;
+}
+
+.dark input:focus,
+.dark select:focus,
+.dark textarea:focus {
+  border-color: #6ee7b7 !important;
+  background-color: #162a20 !important;
+}
+
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--sage-300-color);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--sage-400-color);
+}
+
+@media print {
+  body, html {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  .dark {
+    --canvas-bg: #ffffff !important;
+    --surface-bg: #ffffff !important;
+    --ink-color: #000000 !important;
+    --forest-950-color: #000000 !important;
+  }
+  header, aside, button, nav, .no-print {
+    display: none !important;
+  }
+}
