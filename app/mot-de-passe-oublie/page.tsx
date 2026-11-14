@@ -217,7 +217,7 @@ export default function MotDePasseOubliePage() {
       });
       // Redirect to home/dashboard after 1s with native navigation
       setTimeout(() => {
-        window.location.replace("/");
+        window.location.replace("/dashboard");
       }, 1000);
     }
   };

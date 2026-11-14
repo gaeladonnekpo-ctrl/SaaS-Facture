@@ -59,7 +59,7 @@ export default function LoginPage() {
   useEffect(() => {
     if (user && !isAuthLoading && !isSubmitting) {
       const params = new URLSearchParams(window.location.search);
-      const nextUrl = params.get("next") || "/";
+      const nextUrl = params.get("next") || "/dashboard";
       window.location.replace(nextUrl);
     }
   }, [user, isAuthLoading, isSubmitting]);
@@ -214,9 +214,9 @@ export default function LoginPage() {
         message: `${t("nav_home", "Accueil")} · DANHOMEY Facture`,
       });
 
-      // Target redirection (e.g. ?next=/factures or default to "/")
+      // Target redirection (e.g. ?next=/factures or default to "/dashboard")
       const params = new URLSearchParams(window.location.search);
-      const nextUrl = params.get("next") || "/";
+      const nextUrl = params.get("next") || "/dashboard";
 
       // Native browser document replacement: ensures newly written cookies are immediately sent in HTTP headers,
       // completely bypassing Next.js client router cache race condition for instant 1-click access.

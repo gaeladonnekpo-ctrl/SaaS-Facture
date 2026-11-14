@@ -40,6 +40,7 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   const isPublicRoute =
+    pathname === "/" || // Landing page accessible publiquement
     pathname.startsWith("/connexion") ||
     pathname.startsWith("/inscription") ||
     pathname.startsWith("/mot-de-passe-oublie") ||
@@ -53,13 +54,13 @@ export async function middleware(request: NextRequest) {
   // 1. Unauthenticated user trying to access private page -> 307 redirect to /connexion
   if (!user && !isPublicRoute) {
     const loginUrl = new URL("/connexion", request.url);
-    if (pathname !== "/") {
+    if (pathname !== "/" && pathname !== "/dashboard") {
       loginUrl.searchParams.set("next", pathname);
     }
     return NextResponse.redirect(loginUrl);
   }
 
-  // 2. Authenticated user trying to access login/register/forgot-password -> redirect to /
+  // 2. Authenticated user trying to access login/register/forgot-password -> redirect to /dashboard
   const isAuthPage =
     pathname === "/connexion" ||
     pathname === "/inscription" ||
@@ -68,7 +69,7 @@ export async function middleware(request: NextRequest) {
     pathname === "/signup";
 
   if (user && isAuthPage) {
-    return NextResponse.redirect(new URL("/", request.url));
+    return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
   return response;

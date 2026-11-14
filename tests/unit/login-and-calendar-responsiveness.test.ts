@@ -21,18 +21,18 @@ describe("Login Process & Instant Redirection Verification", () => {
     (globalThis as any).window = originalWindow;
   });
 
-  it("redirects directly to '/' on successful authentication without requiring manual refresh", () => {
+  it("redirects directly to '/dashboard' on successful authentication without requiring manual refresh", () => {
     const isSubmitting = true;
     const res = { error: null };
 
     if (!res.error) {
       const params = new URLSearchParams(window.location.search);
-      const nextUrl = params.get("next") || "/";
+      const nextUrl = params.get("next") || "/dashboard";
       window.location.replace(nextUrl);
     }
 
     expect(locationReplaceSpy).toHaveBeenCalledTimes(1);
-    expect(locationReplaceSpy).toHaveBeenCalledWith("/");
+    expect(locationReplaceSpy).toHaveBeenCalledWith("/dashboard");
     expect(isSubmitting).toBe(true); // Keeps button disabled during native navigation
   });
 
@@ -42,7 +42,7 @@ describe("Login Process & Instant Redirection Verification", () => {
 
     if (!res.error) {
       const params = new URLSearchParams(window.location.search);
-      const nextUrl = params.get("next") || "/";
+      const nextUrl = params.get("next") || "/dashboard";
       window.location.replace(nextUrl);
     }
 

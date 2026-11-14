@@ -42,7 +42,7 @@ const NAV_ITEM_DEFS: NavItemDef[] = [
   {
     key: "nav_dashboard",
     defaultName: "Tableau de bord",
-    href: "/",
+    href: "/dashboard",
     icon: LayoutDashboard,
   },
   {
@@ -125,7 +125,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       >
         {/* Header: Logo & Mobile Close */}
         <div className="flex h-14 sm:h-16 lg:h-18 items-center justify-between px-4 sm:px-5 border-b border-line-subtle">
-          <Link href="/" className="group min-w-0 focus:outline-hidden" onClick={onClose}>
+          <Link href="/dashboard" className="group min-w-0 focus:outline-hidden" onClick={onClose}>
             <Logo
               variant="full"
               size="md"
@@ -194,8 +194,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           {NAV_ITEM_DEFS.map((item) => {
             const Icon = item.icon;
             const isActive =
-              item.href === "/"
-                ? pathname === "/" || pathname === "/tableau-de-bord"
+              item.href === "/dashboard"
+                ? pathname === "/dashboard" || pathname === "/tableau-de-bord"
                 : pathname.startsWith(item.href);
 
             const dynamicBadge =

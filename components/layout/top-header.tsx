@@ -42,21 +42,21 @@ function getPageMeta(
   const setLabel = t("nav_settings", "Paramètres");
   const supLabel = t("nav_support", "Support client");
 
-  if (pathname === "/" || pathname === "/tableau-de-bord") {
+  if (pathname === "/dashboard" || pathname === "/tableau-de-bord" || pathname === "/") {
     return {
       breadcrumbs: [
-        { label: homeLabel, href: "/" },
-        { label: dashLabel, href: "/" },
+        { label: homeLabel, href: "/dashboard" },
+        { label: dashLabel, href: "/dashboard" },
       ],
       title: t("dash_overview", "Vue d'ensemble"),
-      titleHref: "/",
+      titleHref: "/dashboard",
       badge: t("badge_live", "En direct"),
     };
   }
   if (pathname.startsWith("/factures/nouvelle")) {
     return {
       breadcrumbs: [
-        { label: homeLabel, href: "/" },
+        { label: homeLabel, href: "/dashboard" },
         { label: invLabel, href: "/factures" },
         { label: t("nav_new_invoice", "Nouvelle facture") },
       ],
@@ -68,7 +68,7 @@ function getPageMeta(
   if (pathname.includes("/modifier")) {
     return {
       breadcrumbs: [
-        { label: homeLabel, href: "/" },
+        { label: homeLabel, href: "/dashboard" },
         { label: invLabel, href: "/factures" },
         { label: t("action_edit", "Modification") },
       ],
@@ -78,7 +78,7 @@ function getPageMeta(
   if (pathname.startsWith("/factures/")) {
     return {
       breadcrumbs: [
-        { label: homeLabel, href: "/" },
+        { label: homeLabel, href: "/dashboard" },
         { label: invLabel, href: "/factures" },
         { label: t("inv_detail_title", "Détail facture") },
       ],
@@ -89,7 +89,7 @@ function getPageMeta(
   if (pathname === "/factures") {
     return {
       breadcrumbs: [
-        { label: homeLabel, href: "/" },
+        { label: homeLabel, href: "/dashboard" },
         { label: invLabel, href: "/factures" },
       ],
       title: invLabel,
@@ -99,7 +99,7 @@ function getPageMeta(
   if (pathname.startsWith("/clients/")) {
     return {
       breadcrumbs: [
-        { label: homeLabel, href: "/" },
+        { label: homeLabel, href: "/dashboard" },
         { label: custLabel, href: "/clients" },
         { label: t("cust_title", "Fiche client") },
       ],
@@ -110,7 +110,7 @@ function getPageMeta(
   if (pathname === "/clients") {
     return {
       breadcrumbs: [
-        { label: homeLabel, href: "/" },
+        { label: homeLabel, href: "/dashboard" },
         { label: custLabel, href: "/clients" },
       ],
       title: custLabel,
@@ -120,7 +120,7 @@ function getPageMeta(
   if (pathname === "/paiements") {
     return {
       breadcrumbs: [
-        { label: homeLabel, href: "/" },
+        { label: homeLabel, href: "/dashboard" },
         { label: payLabel, href: "/paiements" },
       ],
       title: payLabel,
@@ -131,7 +131,7 @@ function getPageMeta(
   if (pathname === "/rapports") {
     return {
       breadcrumbs: [
-        { label: homeLabel, href: "/" },
+        { label: homeLabel, href: "/dashboard" },
         { label: repLabel, href: "/rapports" },
       ],
       title: repLabel,
@@ -142,7 +142,7 @@ function getPageMeta(
   if (pathname === "/parametres") {
     return {
       breadcrumbs: [
-        { label: homeLabel, href: "/" },
+        { label: homeLabel, href: "/dashboard" },
         { label: setLabel, href: "/parametres" },
       ],
       title: setLabel,
@@ -152,7 +152,7 @@ function getPageMeta(
   if (pathname === "/support") {
     return {
       breadcrumbs: [
-        { label: homeLabel, href: "/" },
+        { label: homeLabel, href: "/dashboard" },
         { label: supLabel, href: "/support" },
       ],
       title: supLabel,
@@ -163,11 +163,11 @@ function getPageMeta(
 
   return {
     breadcrumbs: [
-      { label: homeLabel, href: "/" },
-      { label: dashLabel, href: "/" },
+      { label: homeLabel, href: "/dashboard" },
+      { label: dashLabel, href: "/dashboard" },
     ],
     title: t("dash_overview", "Vue d'ensemble"),
-    titleHref: "/",
+    titleHref: "/dashboard",
   };
 }
 
@@ -190,7 +190,7 @@ export function TopHeader({ onOpenSidebar }: TopHeaderProps) {
         </button>
 
         {/* Mobile Official Logo Emblem */}
-        <Link href="/" className="lg:hidden shrink-0" title="DANHOMEY Facture">
+        <Link href="/dashboard" className="lg:hidden shrink-0" title="DANHOMEY Facture">
           <Logo variant="icon" size="sm" />
         </Link>
 

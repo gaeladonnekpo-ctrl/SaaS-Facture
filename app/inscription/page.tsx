@@ -65,7 +65,7 @@ export default function SignUpPage() {
   // If already logged in, redirect to dashboard
   useEffect(() => {
     if (user && !isAuthLoading && step === "form" && !isSubmitting) {
-      window.location.replace("/");
+      window.location.replace("/dashboard");
     }
   }, [user, isAuthLoading, step, isSubmitting]);
 
@@ -147,7 +147,7 @@ export default function SignUpPage() {
         title: t("auth_signup_title", "Créer un compte"),
         message: `${t("nav_home", "Accueil")} · ${companyName}`,
       });
-      window.location.replace("/");
+      window.location.replace("/dashboard");
     }
   };
 
@@ -176,7 +176,7 @@ export default function SignUpPage() {
         title: t("auth_otp_step_title", "Vérification réussie"),
         message: t("auth_otp_success", "Votre compte a été vérifié avec succès ! Bienvenue."),
       });
-      window.location.replace("/");
+      window.location.replace("/dashboard");
     }
   };
 
