@@ -64,10 +64,10 @@ export default function SignUpPage() {
 
   // If already logged in, redirect to dashboard
   useEffect(() => {
-    if (user && !isAuthLoading && step === "form") {
-      router.push("/");
+    if (user && !isAuthLoading && step === "form" && !isSubmitting) {
+      window.location.replace("/");
     }
-  }, [user, isAuthLoading, router, step]);
+  }, [user, isAuthLoading, step, isSubmitting]);
 
   // Countdown timer for OTP resend
   useEffect(() => {
@@ -147,7 +147,7 @@ export default function SignUpPage() {
         title: t("auth_signup_title", "Créer un compte"),
         message: `${t("nav_home", "Accueil")} · ${companyName}`,
       });
-      router.push("/");
+      window.location.replace("/");
     }
   };
 
@@ -164,9 +164,9 @@ export default function SignUpPage() {
 
     setIsOtpSubmitting(true);
     const res = await verifyOtp(email, fullCode);
-    setIsOtpSubmitting(false);
 
     if (res.error) {
+      setIsOtpSubmitting(false);
       setOtpError(
         t("auth_otp_err_invalid", "Code de validation incorrect ou expiré. Veuillez réessayer.")
       );
@@ -176,7 +176,7 @@ export default function SignUpPage() {
         title: t("auth_otp_step_title", "Vérification réussie"),
         message: t("auth_otp_success", "Votre compte a été vérifié avec succès ! Bienvenue."),
       });
-      router.push("/");
+      window.location.replace("/");
     }
   };
 

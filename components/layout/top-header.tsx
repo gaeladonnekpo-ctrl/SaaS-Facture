@@ -179,7 +179,7 @@ export function TopHeader({ onOpenSidebar }: TopHeaderProps) {
   return (
     <header className="sticky top-0 z-30 flex h-14 sm:h-16 lg:h-18 w-full items-center justify-between gap-3 sm:gap-4 lg:gap-6 border-b border-line bg-surface/95 px-3 sm:px-6 lg:px-8 backdrop-blur-md transition-colors">
       {/* Left section: Hamburger (mobile) & Interactive Dynamic Breadcrumbs & Title */}
-      <div className="flex items-center gap-2 sm:gap-3 shrink-0 min-w-0 max-w-[50%] lg:max-w-[45%]">
+      <div className="flex items-center gap-1.5 sm:gap-3 shrink-0 min-w-0 max-w-[42%] sm:max-w-[50%] lg:max-w-[45%]">
         <button
           type="button"
           onClick={onOpenSidebar}
@@ -240,12 +240,12 @@ export function TopHeader({ onOpenSidebar }: TopHeaderProps) {
                 className="group flex items-center gap-2 min-w-0 hover:opacity-90 transition-opacity"
                 title={`Afficher ${pageMeta.title}`}
               >
-                <h1 className="text-sm font-bold text-forest-950 sm:text-base lg:text-lg tracking-tight group-hover:text-forest-800 transition-colors whitespace-nowrap">
+                <h1 className="text-xs sm:text-base lg:text-lg font-bold text-forest-950 tracking-tight group-hover:text-forest-800 transition-colors truncate">
                   {pageMeta.title}
                 </h1>
               </Link>
             ) : (
-              <h1 className="text-sm font-bold text-forest-950 sm:text-base lg:text-lg tracking-tight whitespace-nowrap">
+              <h1 className="text-xs sm:text-base lg:text-lg font-bold text-forest-950 tracking-tight truncate">
                 {pageMeta.title}
               </h1>
             )}
@@ -261,7 +261,7 @@ export function TopHeader({ onOpenSidebar }: TopHeaderProps) {
       </div>
 
       {/* Center / Right Section */}
-      <div className="flex items-center gap-1.5 xs:gap-2 sm:gap-2.5 shrink-0 ml-auto min-w-0">
+      <div className="flex items-center gap-1 xs:gap-1.5 sm:gap-2.5 shrink-0 ml-auto min-w-0">
         {/* Interactive Search Bar with Live Results & Action Button */}
         <div className="hidden md:block">
           <HeaderSearchBar />

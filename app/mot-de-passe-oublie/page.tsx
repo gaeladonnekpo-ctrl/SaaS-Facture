@@ -204,9 +204,9 @@ export default function MotDePasseOubliePage() {
 
     setIsResetting(true);
     const res = await resetPasswordWithOtp(email.trim(), token, newPassword);
-    setIsResetting(false);
 
     if (res.error) {
+      setIsResetting(false);
       setResetError(res.error);
     } else {
       setResetSuccess(true);
@@ -215,10 +215,10 @@ export default function MotDePasseOubliePage() {
         title: "Mot de passe réinitialisé",
         message: "Votre nouveau mot de passe a été enregistré avec succès !",
       });
-      // Redirect to home/dashboard after 1.5s
+      // Redirect to home/dashboard after 1s with native navigation
       setTimeout(() => {
-        router.push("/");
-      }, 1500);
+        window.location.replace("/");
+      }, 1000);
     }
   };
 

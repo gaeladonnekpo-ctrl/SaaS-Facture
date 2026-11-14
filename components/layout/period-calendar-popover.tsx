@@ -398,13 +398,13 @@ export function PeriodCalendarPopover() {
         <>
           {/* Backdrop click handler */}
           <div
-            className="fixed inset-0 z-40 bg-forest-950/10 backdrop-blur-[1px]"
+            className="fixed inset-0 z-40 bg-forest-950/20 backdrop-blur-[1px]"
             onClick={() => setIsOpen(false)}
             aria-hidden="true"
           />
 
-          {/* Calendar Card */}
-          <div className="absolute right-0 mt-2 z-50 w-[320px] sm:w-[350px] rounded-2xl border border-line bg-surface p-3.5 sm:p-4 shadow-dropdown animate-in fade-in-50 zoom-in-95">
+          {/* Calendar Card - Responsive Viewport Positioning */}
+          <div className="fixed inset-x-2.5 top-16 sm:absolute sm:inset-auto sm:right-0 sm:mt-2 w-auto sm:w-[350px] max-h-[calc(100vh-5rem)] sm:max-h-none overflow-y-auto z-50 rounded-2xl border border-line bg-surface p-3 sm:p-4 shadow-dropdown animate-in fade-in-50 zoom-in-95">
             {/* Quick Presets Pills */}
             <div className="mb-2.5 border-b border-line pb-2.5">
               <div className="flex items-center justify-between mb-1.5">
@@ -578,7 +578,7 @@ export function PeriodCalendarPopover() {
                           setHoverDate(cell.isoDate);
                         }
                       }}
-                      className={`relative mx-auto flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center text-xs transition-all ${cellClass}`}
+                      className={`relative mx-auto flex h-7.5 w-7.5 sm:h-8 sm:w-8 items-center justify-center text-[11px] sm:text-xs transition-all ${cellClass}`}
                     >
                       <span>{cell.day}</span>
                       {cell.isToday && !cell.isSingleSelected && !cell.isRangeStart && !cell.isRangeEnd && (
@@ -594,35 +594,35 @@ export function PeriodCalendarPopover() {
             {selectionMode === "range" && (
               <div className="mt-2.5 pt-2 border-t border-line space-y-2">
                 <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div>
-                    <label className="block text-[10px] font-semibold text-sage-500 uppercase">Du</label>
+                  <div className="min-w-0">
+                    <label className="block text-[10px] font-semibold text-sage-500 uppercase mb-0.5">Du</label>
                     <input
                       type="date"
                       value={rangeStart || ""}
                       onChange={(e) => setRangeStart(e.target.value)}
-                      className="w-full rounded-lg border border-line bg-surface p-1.5 text-xs text-forest-950 font-medium"
+                      className="w-full min-w-0 rounded-lg border border-line bg-surface p-1.5 text-xs text-forest-950 font-medium focus:outline-none focus:ring-1 focus:ring-forest-800"
                     />
                   </div>
-                  <div>
-                    <label className="block text-[10px] font-semibold text-sage-500 uppercase">Au</label>
+                  <div className="min-w-0">
+                    <label className="block text-[10px] font-semibold text-sage-500 uppercase mb-0.5">Au</label>
                     <input
                       type="date"
                       value={rangeEnd || rangeStart || ""}
                       onChange={(e) => setRangeEnd(e.target.value)}
-                      className="w-full rounded-lg border border-line bg-surface p-1.5 text-xs text-forest-950 font-medium"
+                      className="w-full min-w-0 rounded-lg border border-line bg-surface p-1.5 text-xs text-forest-950 font-medium focus:outline-none focus:ring-1 focus:ring-forest-800"
                     />
                   </div>
                 </div>
 
                 <div className="flex items-center justify-between gap-2 pt-1">
-                  <span className="text-[11px] text-ink-muted truncate font-medium">
+                  <span className="text-[11px] text-ink-muted truncate font-medium max-w-[160px] sm:max-w-[200px]">
                     {dateFilter.label}
                   </span>
                   <button
                     type="button"
                     onClick={handleApplyCustomInputs}
                     disabled={!rangeStart}
-                    className="inline-flex items-center gap-1 rounded-lg bg-forest-900 px-3 py-1 text-xs font-semibold text-white shadow-2xs hover:bg-forest-850 disabled:opacity-50 transition-all shrink-0"
+                    className="inline-flex items-center gap-1 rounded-lg bg-forest-900 px-3 py-1.5 text-xs font-semibold text-white shadow-2xs hover:bg-forest-850 active:scale-95 disabled:opacity-50 transition-all shrink-0"
                   >
                     <span>Appliquer</span>
                     <ArrowRight className="w-3 h-3" />

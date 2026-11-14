@@ -59,8 +59,15 @@ export function LanguageSelectorPopover() {
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-72 sm:w-80 z-50 overflow-hidden rounded-2xl border border-line bg-surface shadow-dropdown animate-in fade-in-50 zoom-in-95">
-          <div className="border-b border-line px-3.5 py-2.5 flex items-center justify-between bg-sage-50/50">
+        <>
+          {/* Backdrop for mobile and desktop click-away */}
+          <div
+            className="fixed inset-0 z-40 bg-forest-950/20 backdrop-blur-[1px]"
+            onClick={() => setIsOpen(false)}
+            aria-hidden="true"
+          />
+          <div className="fixed inset-x-3 top-16 sm:absolute sm:inset-auto sm:right-0 sm:mt-2 w-auto sm:w-80 z-50 overflow-hidden rounded-2xl border border-line bg-surface shadow-dropdown animate-in fade-in-50 zoom-in-95 max-h-[calc(100vh-5rem)] sm:max-h-[480px] flex flex-col">
+            <div className="border-b border-line px-3.5 py-2.5 flex items-center justify-between bg-sage-50/50 shrink-0">
             <div className="flex items-center gap-2">
               <Globe className="w-3.5 h-3.5 text-forest-800" />
               <span className="text-xs font-bold text-forest-950">Sélectionner une langue</span>
@@ -159,8 +166,9 @@ export function LanguageSelectorPopover() {
             </div>
           </div>
         </div>
-      )}
-    </div>
-  );
+      </>
+    )}
+  </div>
+);
 }
 

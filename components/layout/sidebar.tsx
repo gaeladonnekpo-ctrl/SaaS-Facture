@@ -99,7 +99,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     try {
       if (onClose) onClose();
       await signOut();
-      router.push("/connexion");
+      window.location.replace("/connexion");
     } finally {
       setIsLoggingOut(false);
       setShowLogoutConfirm(false);

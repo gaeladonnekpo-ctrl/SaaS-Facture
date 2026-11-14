@@ -110,13 +110,13 @@ export function NotificationPopover() {
         <>
           {/* Backdrop */}
           <div
-            className="fixed inset-0 z-40"
+            className="fixed inset-0 z-40 bg-forest-950/20 backdrop-blur-[1px]"
             onClick={() => setIsOpen(false)}
             aria-hidden="true"
           />
 
           {/* Panel */}
-          <div className="absolute right-0 mt-2 z-50 w-80 sm:w-96 rounded-2xl border border-line bg-surface shadow-2xl animate-in fade-in-50 zoom-in-95 overflow-hidden">
+          <div className="fixed inset-x-2.5 top-16 sm:absolute sm:inset-auto sm:right-0 sm:mt-2 w-auto sm:w-96 rounded-2xl border border-line bg-surface shadow-2xl animate-in fade-in-50 zoom-in-95 overflow-hidden max-h-[calc(100vh-5rem)] sm:max-h-[520px] flex flex-col z-50">
             {/* Header */}
             <div className="flex items-center justify-between border-b border-line px-4 py-3 bg-surface">
               <div className="flex items-center gap-2">

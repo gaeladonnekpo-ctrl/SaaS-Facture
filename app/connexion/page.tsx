@@ -55,12 +55,14 @@ export default function LoginPage() {
   const [lockoutTier, setLockoutTier] = useState(1);
   const [unlockMessage, setUnlockMessage] = useState<string | null>(null);
 
-  // If already logged in, redirect to dashboard
+  // If already logged in, redirect to dashboard or requested page
   useEffect(() => {
-    if (user && !isAuthLoading) {
-      router.push("/");
+    if (user && !isAuthLoading && !isSubmitting) {
+      const params = new URLSearchParams(window.location.search);
+      const nextUrl = params.get("next") || "/";
+      window.location.replace(nextUrl);
     }
-  }, [user, isAuthLoading, router]);
+  }, [user, isAuthLoading, isSubmitting]);
 
   // Restore lockout state from localStorage on mount (survives F5 / page reload)
   useEffect(() => {
@@ -141,9 +143,9 @@ export default function LoginPage() {
 
     setIsSubmitting(true);
     const res = await signIn(email, password);
-    setIsSubmitting(false);
 
     if (res.error) {
+      setIsSubmitting(false);
       const errLower = res.error.toLowerCase();
       const newAttempts = failedAttempts + 1;
       setFailedAttempts(newAttempts);
@@ -211,7 +213,14 @@ export default function LoginPage() {
         title: t("auth_login_title", "Connexion"),
         message: `${t("nav_home", "Accueil")} · DANHOMEY Facture`,
       });
-      router.push("/");
+
+      // Target redirection (e.g. ?next=/factures or default to "/")
+      const params = new URLSearchParams(window.location.search);
+      const nextUrl = params.get("next") || "/";
+
+      // Native browser document replacement: ensures newly written cookies are immediately sent in HTTP headers,
+      // completely bypassing Next.js client router cache race condition for instant 1-click access.
+      window.location.replace(nextUrl);
     }
   };
 

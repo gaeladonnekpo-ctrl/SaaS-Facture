@@ -48,7 +48,7 @@ export default function SettingsPage() {
     setIsLoggingOut(true);
     try {
       await signOut();
-      router.push("/connexion");
+      window.location.replace("/connexion");
     } finally {
       setIsLoggingOut(false);
       setShowLogoutConfirm(false);
